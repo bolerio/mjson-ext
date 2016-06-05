@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bnd-LastModified: 1465086757568
+Build-Jdk: 1.8.0_40
+Built-By: borislav
+Bundle-Description: The JDK netscape.JSObject class is used to access Ja
+ vaScript inside a JavaScript VirtualMachine. Those can be seen as JSON 
+ objects. This implementation provides such a view.
+Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt
+Bundle-ManifestVersion: 2
+Bundle-Name: mJson Implementation Based on JDK's netscape.jsobject
+Bundle-SymbolicName: mjson-nsjsobject;singleton:=true
+Bundle-Version: 1.0.0.SNAPSHOT
+Created-By: Apache Maven Bundle Plugin
+Export-Package: mjson-nsjsobject;version="1.0.0.SNAPSHOT"
+Import-Package: mjson,netscape.javascript
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version=1.8))"
+Tool: Bnd-2.4.0.201411031534
