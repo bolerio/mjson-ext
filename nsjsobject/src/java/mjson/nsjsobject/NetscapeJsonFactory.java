@@ -11,6 +11,7 @@ package mjson.nsjsobject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,13 +35,26 @@ import netscape.javascript.JSObject;
  * @author Borislav Iordanov
  *
  */
-public class NetscapeJsonFactory extends Json.DefaultFactory
+public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.Closeable
 {
 	JSObject global;
+	
+	public static NetscapeJsonFactory enter(JSObject global)
+	{
+		NetscapeJsonFactory factory = new NetscapeJsonFactory(global);
+		Json.attachFactory(factory);
+		return factory;
+	}
 	
 	public NetscapeJsonFactory(JSObject global)
 	{
 		this.global = global;
+	}
+	
+	@Override
+	public void close()
+	{
+		Json.detachFactory();
 	}
 	
 	class ObjectJson extends Json
@@ -155,14 +169,35 @@ public class NetscapeJsonFactory extends Json.DefaultFactory
 			return this;
 		}
 		
-		public Object getValue() { return asMap(); }
+		public Object getValue() { return this.object; }
 		public boolean isObject() { return true; }
+		
+		/*
+		private void recurseMap(Map<String, Object> map, IdentityHashMap<Object, Json> done)
+		{
+			for (String name : propertyNames())
+			{
+				Object value = object.getMember(name);
+				Json asjson = done.get(value);
+				if (asjson == null)
+				{
+					asjson = make(value);
+					done.put(value, asjson);
+				}
+				map.put(name, value);
+			} 			
+		} */
+		
 		public Map<String, Object> asMap() 
 		{
 			HashMap<String, Object> m = new HashMap<String, Object>();
 			for (String name : propertyNames())
-				m.put(name, at(name).getValue());
-			return m; 
+			{
+				Object value = object.getMember(name);
+				m.put(name, value);
+			}
+//			recurseMap(m, new IdentityHashMap<Object, Json>());
+			return m;
 		}
 		
 		@Override
@@ -218,7 +253,7 @@ public class NetscapeJsonFactory extends Json.DefaultFactory
 		
 		JSObject array;
 		
-		ArrayJson() {  }
+		ArrayJson() { array = (JSObject)global.eval("[]"); }
 		ArrayJson(Json e) { super(e); array = (JSObject)global.eval("[]"); }
 		ArrayJson(JSObject array) { this.array = array; }
 		
@@ -261,7 +296,7 @@ public class NetscapeJsonFactory extends Json.DefaultFactory
         }       		
 		public Object getValue() { return array; }
 		public boolean isArray() { return true; }
-		public Json at(int index) { return at(index); }
+		public Json at(int index) { return make(array.getSlot(index)); }
 		public Json add(Json el) 
 		{ 
 			array.call("push", el.getValue()); 
@@ -461,7 +496,12 @@ public class NetscapeJsonFactory extends Json.DefaultFactory
 		if (anything instanceof JSObject)
 		{
 			JSObject x = (JSObject)anything;
-			if (((JSObject)x.getMember("constructor")).getMember("name").toString().equals("Array"))
+			Object cons = x.getMember("constructor");
+			if ("undefined".equals(cons))
+				return new ObjectJson(x);
+			if (! (cons instanceof JSObject))
+				System.err.println("Oops " + x + " is not  a jsobject");
+			if (((JSObject)cons).getMember("name").toString().equals("Array"))
 				return new ArrayJson(x);
 			else
 				return new ObjectJson(x);
