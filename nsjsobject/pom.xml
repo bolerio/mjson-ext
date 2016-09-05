@@ -148,7 +148,7 @@
         <version>2.5.3</version>
         <extensions>true</extensions>
         <configuration>
- 		  <manifestLocation>META-INF</manifestLocation>        
+          <manifestLocation>META-INF</manifestLocation>        
           <instructions>
             <Bundle-SymbolicName>${project.groupId}-${project.artifactId};singleton:=true</Bundle-SymbolicName>
             <Bundle-Name>${project.name}</Bundle-Name>

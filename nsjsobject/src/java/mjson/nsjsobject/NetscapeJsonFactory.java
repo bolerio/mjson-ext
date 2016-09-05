@@ -37,74 +37,74 @@ import netscape.javascript.JSObject;
  */
 public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.Closeable
 {
-	JSObject global;
-	
-	public static NetscapeJsonFactory enter(JSObject global)
-	{
-		NetscapeJsonFactory factory = new NetscapeJsonFactory(global);
-		Json.attachFactory(factory);
-		return factory;
-	}
-	
-	public NetscapeJsonFactory(JSObject global)
-	{
-		this.global = global;
-	}
-	
-	@Override
-	public void close()
-	{
-		Json.detachFactory();
-	}
-	
-	class ObjectJson extends Json
-	{
-		private static final long serialVersionUID = 1L;
-		
-		JSObject object;
-		
-		ObjectJson() { object = (JSObject)global.eval("new Object()"); }
-		ObjectJson(Json e) { super(e); object = (JSObject)global.eval("new Object()"); }
-		ObjectJson(JSObject object) { this.object = object; }
-		
-		Set<String> propertyNames() 
-		{
-			final JSObject propertyNames = (JSObject)object.eval("Object.getOwnPropertyNames(this)");
-			final int length = (Integer)propertyNames.getMember("length");
-			Set<String> S = new HashSet<String>();
-			for (int i = 0; i < length; i++)
-				S.add((String)propertyNames.getSlot(i));
-			return S;
-		}
-			
-		public Json dup() 
-		{ 
-		    ObjectJson j = new ObjectJson();
-		    propertyNames().forEach(name -> {
-		    	Json v =  make(object.getMember(name)).dup();
-		        j.object.setMember(name, v);    	
-		    });
-		    return j;
-		}
-		
-		public boolean has(String property)
-		{
-			return object.getMember(property) != null;
-		}
-		
-		public boolean is(String property, Object value) 
-		{ 
-		    Json p = at(property);
-		    if (p == null)
-		        return false;
-		    else
-		        return p.equals(make(value));
-		}		
-		
-		public Json at(String property)
-		{
-			return make(object.getMember(property));
-		}
+    JSObject global;
+    
+    public static NetscapeJsonFactory enter(JSObject global)
+    {
+        NetscapeJsonFactory factory = new NetscapeJsonFactory(global);
+        Json.attachFactory(factory);
+        return factory;
+    }
+    
+    public NetscapeJsonFactory(JSObject global)
+    {
+        this.global = global;
+    }
+    
+    @Override
+    public void close()
+    {
+        Json.detachFactory();
+    }
+    
+    class ObjectJson extends Json
+    {
+        private static final long serialVersionUID = 1L;
+        
+        JSObject object;
+        
+        ObjectJson() { object = (JSObject)global.eval("new Object()"); }
+        ObjectJson(Json e) { super(e); object = (JSObject)global.eval("new Object()"); }
+        ObjectJson(JSObject object) { this.object = object; }
+        
+        Set<String> propertyNames() 
+        {
+            final JSObject propertyNames = (JSObject)object.eval("Object.getOwnPropertyNames(this)");
+            final int length = (Integer)propertyNames.getMember("length");
+            Set<String> S = new HashSet<String>();
+            for (int i = 0; i < length; i++)
+                S.add((String)propertyNames.getSlot(i));
+            return S;
+        }
+            
+        public Json dup() 
+        { 
+            ObjectJson j = new ObjectJson();
+            propertyNames().forEach(name -> {
+                Json v =  make(object.getMember(name)).dup();
+                j.object.setMember(name, v);        
+            });
+            return j;
+        }
+        
+        public boolean has(String property)
+        {
+            return object.getMember(property) != null;
+        }
+        
+        public boolean is(String property, Object value) 
+        { 
+            Json p = at(property);
+            if (p == null)
+                return false;
+            else
+                return p.equals(make(value));
+        }       
+        
+        public Json at(String property)
+        {
+            return make(object.getMember(property));
+        }
 
         protected Json withOptions(Json other, Json allOptions, String path)
         {
@@ -132,11 +132,11 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
             return this;
         }
 
-		public Json with(Json x, Json...options)
-		{
-			if (x == null) return this;			
-			if (!x.isObject())
-				throw new UnsupportedOperationException();
+        public Json with(Json x, Json...options)
+        {
+            if (x == null) return this;         
+            if (!x.isObject())
+                throw new UnsupportedOperationException();
             if (options.length > 0)
             {
                 Json O = collectWithOptions(options);
@@ -144,120 +144,120 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
             }
             else for (Map.Entry<String, Json> e : x.asJsonMap().entrySet())
                 set(e.getKey(), e.getValue());
-			return this;
-		}
-		
-		public Json set(String property, Json el)
-		{
-			if (property == null)
-				throw new IllegalArgumentException("Null property names are not allowed, value is " + el);
-			Object value = el == null ? null : el.getValue();
-			object.setMember(property, value);
-			return this;
-		}
+            return this;
+        }
+        
+        public Json set(String property, Json el)
+        {
+            if (property == null)
+                throw new IllegalArgumentException("Null property names are not allowed, value is " + el);
+            Object value = el == null ? null : el.getValue();
+            object.setMember(property, value);
+            return this;
+        }
 
-		public Json atDel(String property) 
-		{
-			Object value = object.getMember(property);
-			object.removeMember(property);
-			return make(value);
-		}
-		
-		public Json delAt(String property) 
-		{
-			object.removeMember(property);
-			return this;
-		}
-		
-		public Object getValue() { return this.object; }
-		public boolean isObject() { return true; }
-		
-		/*
-		private void recurseMap(Map<String, Object> map, IdentityHashMap<Object, Json> done)
-		{
-			for (String name : propertyNames())
-			{
-				Object value = object.getMember(name);
-				Json asjson = done.get(value);
-				if (asjson == null)
-				{
-					asjson = make(value);
-					done.put(value, asjson);
-				}
-				map.put(name, value);
-			} 			
-		} */
-		
-		public Map<String, Object> asMap() 
-		{
-			HashMap<String, Object> m = new HashMap<String, Object>();
-			for (String name : propertyNames())
-			{
-				Object value = object.getMember(name);
-				m.put(name, value);
-			}
-//			recurseMap(m, new IdentityHashMap<Object, Json>());
-			return m;
-		}
-		
-		@Override
-		public Map<String, Json> asJsonMap() 
-		{ 
-			HashMap<String, Json> m = new HashMap<String, Json>();
-			for (String name : propertyNames())
-				m.put(name, at(name));
-			return m; 
-		}
-		
-		public String toString()
-		{
-			return toString(Integer.MAX_VALUE);
-		}
-		
-		public String toString(int maxCharacters)
-		{
-			StringBuilder sb = new StringBuilder("{");
-			for (Iterator<String> i = propertyNames().iterator(); i.hasNext(); )
-			{
-				String name = i.next();
-				Json value = at(name);		
-				sb.append('"');				
-				sb.append(Json.help.escape(name));
-				sb.append('"');
-				sb.append(":");
-				String s = value.toString(maxCharacters);
-				if (sb.length() + s.length() > maxCharacters)
-					s = s.substring(0, Math.max(0, maxCharacters - sb.length()));
-				sb.append(s);
-				if (i.hasNext())
-					sb.append(",");
-				if (sb.length() >= maxCharacters)
-				{
-					sb.append("...");
-					break;
-				}
-			}
-			sb.append("}");
-			return sb.toString();
-		}
-		public int hashCode() { return object.hashCode(); }
-		public boolean equals(Object x)
-		{			
-			return x instanceof ObjectJson && ((ObjectJson)x).object.equals(object); 
-		}				
-	}
-	
-	class ArrayJson extends Json
-	{
-		private static final long serialVersionUID = 1L;
-		
-		JSObject array;
-		
-		ArrayJson() { array = (JSObject)global.eval("[]"); }
-		ArrayJson(Json e) { super(e); array = (JSObject)global.eval("[]"); }
-		ArrayJson(JSObject array) { this.array = array; }
-		
-		int length() { return  (Integer)array.getMember("length"); }
+        public Json atDel(String property) 
+        {
+            Object value = object.getMember(property);
+            object.removeMember(property);
+            return make(value);
+        }
+        
+        public Json delAt(String property) 
+        {
+            object.removeMember(property);
+            return this;
+        }
+        
+        public Object getValue() { return this.object; }
+        public boolean isObject() { return true; }
+        
+        /*
+        private void recurseMap(Map<String, Object> map, IdentityHashMap<Object, Json> done)
+        {
+            for (String name : propertyNames())
+            {
+                Object value = object.getMember(name);
+                Json asjson = done.get(value);
+                if (asjson == null)
+                {
+                    asjson = make(value);
+                    done.put(value, asjson);
+                }
+                map.put(name, value);
+            }           
+        } */
+        
+        public Map<String, Object> asMap() 
+        {
+            HashMap<String, Object> m = new HashMap<String, Object>();
+            for (String name : propertyNames())
+            {
+                Object value = object.getMember(name);
+                m.put(name, value);
+            }
+//          recurseMap(m, new IdentityHashMap<Object, Json>());
+            return m;
+        }
+        
+        @Override
+        public Map<String, Json> asJsonMap() 
+        { 
+            HashMap<String, Json> m = new HashMap<String, Json>();
+            for (String name : propertyNames())
+                m.put(name, at(name));
+            return m; 
+        }
+        
+        public String toString()
+        {
+            return toString(Integer.MAX_VALUE);
+        }
+        
+        public String toString(int maxCharacters)
+        {
+            StringBuilder sb = new StringBuilder("{");
+            for (Iterator<String> i = propertyNames().iterator(); i.hasNext(); )
+            {
+                String name = i.next();
+                Json value = at(name);      
+                sb.append('"');             
+                sb.append(Json.help.escape(name));
+                sb.append('"');
+                sb.append(":");
+                String s = value.toString(maxCharacters);
+                if (sb.length() + s.length() > maxCharacters)
+                    s = s.substring(0, Math.max(0, maxCharacters - sb.length()));
+                sb.append(s);
+                if (i.hasNext())
+                    sb.append(",");
+                if (sb.length() >= maxCharacters)
+                {
+                    sb.append("...");
+                    break;
+                }
+            }
+            sb.append("}");
+            return sb.toString();
+        }
+        public int hashCode() { return object.hashCode(); }
+        public boolean equals(Object x)
+        {           
+            return x instanceof ObjectJson && ((ObjectJson)x).object.equals(object); 
+        }               
+    }
+    
+    class ArrayJson extends Json
+    {
+        private static final long serialVersionUID = 1L;
+        
+        JSObject array;
+        
+        ArrayJson() { array = (JSObject)global.eval("[]"); }
+        ArrayJson(Json e) { super(e); array = (JSObject)global.eval("[]"); }
+        ArrayJson(JSObject array) { this.array = array; }
+        
+        int length() { return  (Integer)array.getMember("length"); }
 
         public Json dup() 
         { 
@@ -272,46 +272,46 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
         
         public Json set(int index, Object value) 
         { 
-        	array.setSlot(index, make(value));
-        	return this;
+            array.setSlot(index, make(value));
+            return this;
         }
         
-		public List<Json> asJsonList() 
-		{ 
-			ArrayList<Json> L = new ArrayList<Json>();
-			for (int i = 0; i < length(); i++)
-				L.add(at(i));
-			return L; 
-		}
-		public List<Object> asList() 
-		{
-			return asJsonList().stream().map(Json::getValue).collect(Collectors.toList());
-		}
+        public List<Json> asJsonList() 
+        { 
+            ArrayList<Json> L = new ArrayList<Json>();
+            for (int i = 0; i < length(); i++)
+                L.add(at(i));
+            return L; 
+        }
+        public List<Object> asList() 
+        {
+            return asJsonList().stream().map(Json::getValue).collect(Collectors.toList());
+        }
         public boolean is(int index, Object value) 
         { 
             if (index < 0 || index >= length())
                 return false;
             else
                 return at(index).equals(make(value));
-        }       		
-		public Object getValue() { return array; }
-		public boolean isArray() { return true; }
-		public Json at(int index) { return make(array.getSlot(index)); }
-		public Json add(Json el) 
-		{ 
-			array.call("push", el.getValue()); 
-			//el.enclosing = this; 
-			return this; 
-		}
-		
-		public Json remove(Json el) 
-		{ 
-			Object value = el.getValue();
-			Integer i = (Integer)array.call("indexOf", value);
-			if (i > -1)
-				array.call("splice", i, 1);
-			return this; 
-		}
+        }               
+        public Object getValue() { return array; }
+        public boolean isArray() { return true; }
+        public Json at(int index) { return make(array.getSlot(index)); }
+        public Json add(Json el) 
+        { 
+            array.call("push", el.getValue()); 
+            //el.enclosing = this; 
+            return this; 
+        }
+        
+        public Json remove(Json el) 
+        { 
+            Object value = el.getValue();
+            Integer i = (Integer)array.call("indexOf", value);
+            if (i > -1)
+                array.call("splice", i, 1);
+            return this; 
+        }
 
         boolean isEqualJson(Json left, Json right)
         {
@@ -341,7 +341,7 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
         }
 
         @SuppressWarnings({ "unchecked", "rawtypes" })
-		int compareJson(Json left, Json right, Json fields)
+        int compareJson(Json left, Json right, Json fields)
         {
             if (fields.isNull())
                 return ((Comparable)left.getValue()).compareTo(right.getValue());
@@ -415,99 +415,99 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
             return this;
         }
 
-		public Json with(Json object, Json...options)
-		{
-			if (object == null) return this;
-			if (!object.isArray())
-				add(object);
+        public Json with(Json object, Json...options)
+        {
+            if (object == null) return this;
+            if (!object.isArray())
+                add(object);
             else if (options.length > 0)
             {
                 Json O = collectWithOptions(options);
                 return withOptions(object, O, "");
             }
-			else
-			{
-				((JSObject)array.getMember("push")).call("apply", array, ((ArrayJson)object).array);
-			}
-			return this;
-		}
-		
-		public Json atDel(int index) 
-		{ 
-			Object el = array.getSlot(index); 
-			return make(el); 
-		}
-		
-		public Json delAt(int index) 
-		{ 
-			array.getSlot(index); 
-			return this; 
-		}
-		
-		public String toString()
-		{
-			return toString(Integer.MAX_VALUE);
-		}
-		
-		public String toString(int maxCharacters) 
-		{
-			StringBuilder sb = new StringBuilder("[");			
-			for (Iterator<Json> i = asJsonList().iterator(); i.hasNext(); )
-			{
-				String s = i.next().toString(maxCharacters);
-				if (sb.length() + s.length() > maxCharacters)
-					s = s.substring(0, Math.max(0, maxCharacters - sb.length()));
-				else
-					sb.append(s);
-				if (i.hasNext())
-					sb.append(",");
-				if (sb.length() >= maxCharacters)
-				{
-					sb.append("...");
-					break;
-				}
-			}			
-			sb.append("]");
-			return sb.toString();			
-		}
-		
-		public int hashCode() { return array.hashCode(); }
-		public boolean equals(Object x)
-		{			
-			return x instanceof ArrayJson && ((ArrayJson)x).array.equals(array); 
-		}		
-	}
+            else
+            {
+                ((JSObject)array.getMember("push")).call("apply", array, ((ArrayJson)object).array);
+            }
+            return this;
+        }
+        
+        public Json atDel(int index) 
+        { 
+            Object el = array.getSlot(index); 
+            return make(el); 
+        }
+        
+        public Json delAt(int index) 
+        { 
+            array.getSlot(index); 
+            return this; 
+        }
+        
+        public String toString()
+        {
+            return toString(Integer.MAX_VALUE);
+        }
+        
+        public String toString(int maxCharacters) 
+        {
+            StringBuilder sb = new StringBuilder("[");          
+            for (Iterator<Json> i = asJsonList().iterator(); i.hasNext(); )
+            {
+                String s = i.next().toString(maxCharacters);
+                if (sb.length() + s.length() > maxCharacters)
+                    s = s.substring(0, Math.max(0, maxCharacters - sb.length()));
+                else
+                    sb.append(s);
+                if (i.hasNext())
+                    sb.append(",");
+                if (sb.length() >= maxCharacters)
+                {
+                    sb.append("...");
+                    break;
+                }
+            }           
+            sb.append("]");
+            return sb.toString();           
+        }
+        
+        public int hashCode() { return array.hashCode(); }
+        public boolean equals(Object x)
+        {           
+            return x instanceof ArrayJson && ((ArrayJson)x).array.equals(array); 
+        }       
+    }
 
-	@Override
-	public Json object()
-	{
-		return new ObjectJson();
-	}
+    @Override
+    public Json object()
+    {
+        return new ObjectJson();
+    }
 
-	@Override
-	public Json array()
-	{
-		return new ArrayJson();
-	}
+    @Override
+    public Json array()
+    {
+        return new ArrayJson();
+    }
 
-	@Override
-	public Json make(Object anything)
-	{
-		if (anything instanceof JSObject)
-		{
-			JSObject x = (JSObject)anything;
-			Object cons = x.getMember("constructor");
-			if ("undefined".equals(cons))
-				return new ObjectJson(x);
-			if (! (cons instanceof JSObject))
-				System.err.println("Oops " + x + " is not  a jsobject");
-			if (((JSObject)cons).getMember("name").toString().equals("Array"))
-				return new ArrayJson(x);
-			else
-				return new ObjectJson(x);
-		}
-		else
-			return super.make(anything);
-	}
+    @Override
+    public Json make(Object anything)
+    {
+        if (anything instanceof JSObject)
+        {
+            JSObject x = (JSObject)anything;
+            Object cons = x.getMember("constructor");
+            if ("undefined".equals(cons))
+                return new ObjectJson(x);
+            if (! (cons instanceof JSObject))
+                System.err.println("Oops " + x + " is not  a jsobject");
+            if (((JSObject)cons).getMember("name").toString().equals("Array"))
+                return new ArrayJson(x);
+            else
+                return new ObjectJson(x);
+        }
+        else
+            return super.make(anything);
+    }
 
 }
