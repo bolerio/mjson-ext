@@ -36,7 +36,7 @@ public class MjsonJsonProvider extends AbstractJsonProvider {
 
     @Override
     public boolean isArray(final Object obj) {
-        return (((Json)obj).isArray());
+        return (obj instanceof List || (obj instanceof Json && ((Json)obj).isArray()));
     }
 
     public Object createArray() {
@@ -45,7 +45,7 @@ public class MjsonJsonProvider extends AbstractJsonProvider {
 
     @Override
     public boolean isMap(final Object obj) {
-        return ((Json)obj).isObject();
+        return (obj instanceof Map || (obj instanceof Json && ((Json)obj).isObject()));
     }
 
     public Object createMap() {
@@ -58,7 +58,6 @@ public class MjsonJsonProvider extends AbstractJsonProvider {
             ((Json) obj).set(key.toString(), Json.make(value));
         }
     }
-
 
     @Override
     public Object getArrayIndex(final Object obj, final int idx) {
@@ -124,6 +123,15 @@ public class MjsonJsonProvider extends AbstractJsonProvider {
         Json v = Json.make(newValue);
         List<Json> list = ((Json) array).asJsonList();
         list.add(index, v);
+    }
+
+    @Override
+    public Object unwrap(Object obj) {
+        if (obj != null && obj instanceof Json) {
+            return ((Json) obj).getValue();
+        } else {
+            return obj;
+        }
     }
 
 }

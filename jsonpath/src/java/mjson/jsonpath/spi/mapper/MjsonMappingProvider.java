@@ -9,7 +9,7 @@ import mjson.Json;
 import java.util.ArrayList;
 
 /**
- * Created by Matt on 2016-11-06.
+ * Created by Matt Pratap on 2016-11-06.
  */
 @SuppressWarnings("unchecked")
 public class MjsonMappingProvider implements MappingProvider {
@@ -62,7 +62,7 @@ public class MjsonMappingProvider implements MappingProvider {
                 return (T) list;
             }
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
         throw new MappingException("Cannot convert a " + source.getClass().getName() + " to a " + targetType);
     }

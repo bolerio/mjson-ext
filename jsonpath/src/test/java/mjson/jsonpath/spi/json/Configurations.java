@@ -1,11 +1,6 @@
 package mjson.jsonpath.spi.json;
 
 import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.spi.json.*;
-import com.jayway.jsonpath.spi.mapper.GsonMappingProvider;
-import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
-import com.jayway.jsonpath.spi.mapper.JsonOrgMappingProvider;
-import com.jayway.jsonpath.spi.mapper.JsonSmartMappingProvider;
 import mjson.jsonpath.spi.mapper.MjsonMappingProvider;
 
 import java.util.Arrays;

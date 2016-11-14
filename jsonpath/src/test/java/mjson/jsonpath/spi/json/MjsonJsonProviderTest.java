@@ -4,10 +4,10 @@ import mjson.Json;
 import org.junit.Test;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static com.jayway.jsonpath.JsonPath.using;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -158,6 +158,31 @@ public class MjsonJsonProviderTest extends BaseTest {
         assertThat(objs.asList()).containsExactly(8.95D, 12.99D, 8.99D, 22.99D);
     }
 
+    @Test
+    public void equality_check_does_not_break_evaluation() {
+        assertHasOneResult("[{\"value\":\"5\"}]", "$[?(@.value=='5')]", MJSON_CONFIGURATION);
+    }
+
+    @Test
+    public void multiple_context_object_can_be_refered() {
+        int bookCount = 4;
+
+        List all = using(MJSON_CONFIGURATION).parse(JSON_DOCUMENT).read("store.book[ ?(@.category == @.category) ]", List.class);
+        assertThat(all.size()).isEqualTo(bookCount);
+
+        List all2 = using(MJSON_CONFIGURATION).parse(JSON_DOCUMENT).read("store.book[ ?(@.category == @['category']) ]", List.class);
+        assertThat(all2.size()).isEqualTo(bookCount);
+
+        List all3 = using(MJSON_CONFIGURATION).parse(JSON_DOCUMENT).read("store.book[ ?(@ == @) ]", List.class);
+        assertThat(all3.size()).isEqualTo(bookCount);
+
+        List none = using(MJSON_CONFIGURATION).parse(JSON_DOCUMENT).read("store.book[ ?(@.category != @.category) ]", List.class);
+        assertThat(none.size()).isEqualTo(0);
+
+        List none2 = using(MJSON_CONFIGURATION).parse(JSON_DOCUMENT).read("store.book[ ?(@.category != @) ]", List.class);
+        assertThat(none2.size()).isEqualTo(4);
+
+    }
 //    @Test
 //    public void an_object_can_be_mapped_to_pojo() {
 //
