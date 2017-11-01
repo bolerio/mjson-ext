@@ -89,7 +89,12 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
         
         public boolean has(String property)
         {
-            return object.getMember(property) != null;
+            // based on this: https://developer.mozilla.org/en-US/docs/Archive/Web/LiveConnect/LiveConnect_Overview#Undefined_Values
+            // "The value is converted to an instance of java.lang.String whose value is the string "undefined"."
+            // and this: http://mail.openjdk.java.net/pipermail/nashorn-dev/2015-March/004418.html
+            return !object
+                    .eval(String.format("typeof this['%s']", property))
+                    .equals("undefined");
         }
         
         public boolean is(String property, Object value) 
