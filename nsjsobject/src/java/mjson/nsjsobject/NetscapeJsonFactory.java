@@ -108,7 +108,10 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
         
         public Json at(String property)
         {
-            return make(object.getMember(property));
+            if (has(property))
+                return make(object.getMember(property));
+            else
+                return null;
         }
 
         protected Json withOptions(Json other, Json allOptions, String path)
