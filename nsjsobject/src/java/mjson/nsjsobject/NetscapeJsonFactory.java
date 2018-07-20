@@ -62,12 +62,6 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
         
         JSObject object;
         
-        private Object _getMember(String name)
-        {
-        	Object v = object.getMember(name); 
-            return "undefined".equals(v) ? null : v;        	
-        }
-        
         ObjectJson() { object = (JSObject)global.eval("new Object()"); }
         ObjectJson(Json e) { super(e); object = (JSObject)global.eval("new Object()"); }
         ObjectJson(JSObject object) { this.object = object; }
@@ -86,7 +80,7 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
         { 
             ObjectJson j = new ObjectJson();
             propertyNames().forEach(name -> {
-                Json v =  make(_getMember(name)).dup();
+                Json v =  at(name).dup();
                 j.object.setMember(name, v);        
             });
             return j;
@@ -94,7 +88,12 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
         
         public boolean has(String property)
         {
-        	return _getMember(property) != null;
+            // based on this: https://developer.mozilla.org/en-US/docs/Archive/Web/LiveConnect/LiveConnect_Overview#Undefined_Values
+            // "The value is converted to an instance of java.lang.String whose value is the string "undefined"."
+            // and this: http://mail.openjdk.java.net/pipermail/nashorn-dev/2015-March/004418.html
+            return !object
+                    .eval(String.format("typeof this['%s']", property))
+                    .equals("undefined");
         }
         
         public boolean is(String property, Object value) 
@@ -108,8 +107,10 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
         
         public Json at(String property)
         {
-            Object x = _getMember(property);
-            return x == null ? null : make(x);
+            if (has(property))
+                return make(object.getMember(property));
+            else
+                return null;
         }
 
         protected Json withOptions(Json other, Json allOptions, String path)
@@ -164,9 +165,9 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
 
         public Json atDel(String property) 
         {
-            Object value = _getMember(property);
+            Json value = at(property);
             object.removeMember(property);
-            return make(value);
+            return value;
         }
         
         public Json delAt(String property) 
@@ -199,8 +200,8 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
             HashMap<String, Object> m = new HashMap<String, Object>();
             for (String name : propertyNames())
             {
-                Object value = _getMember(name);
-                m.put(name, value);
+                Json value = at(name);
+                m.put(name, value.getValue());
             }
 //          recurseMap(m, new IdentityHashMap<Object, Json>());
             return m;
