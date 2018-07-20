@@ -20,9 +20,9 @@
 
         <!--get specific commit from Github.  -->
         <dependency>
-            <groupId>com.github.bolerio</groupId>
+            <groupId>org.sharegov</groupId>
             <artifactId>mjson</artifactId>
-            <version>HEAD</version>
+            <version>1.4.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
@@ -55,8 +55,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
         </plugins>

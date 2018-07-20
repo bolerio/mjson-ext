@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1466711349662
+Bnd-LastModified: 1532062345474
 Build-Jdk: 1.8.0_40
 Built-By: borislav
 Bundle-Description: The JDK netscape.JSObject class is used to access Ja
