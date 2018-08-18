@@ -81,7 +81,7 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
             ObjectJson j = new ObjectJson();
             propertyNames().forEach(name -> {
                 Json v =  at(name).dup();
-                j.object.setMember(name, v);        
+                j.set(name, v);        
             });
             return j;
         }
@@ -279,7 +279,7 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
         
         public Json set(int index, Object value) 
         { 
-            array.setSlot(index, make(value));
+            array.setSlot(index, make(value).getValue());
             return this;
         }
         
