@@ -269,10 +269,10 @@ public class NetscapeJsonFactory extends Json.DefaultFactory implements java.io.
         public Json dup() 
         { 
             ArrayJson j = new ArrayJson();
-            for (Json e : j.asJsonList())
+            for (int i = 0; i < length(); i++)
             {
-                Json v = e.dup();
-                j.add(v);
+                Json v = at(i);
+                j.add(v.dup());
             }
             return j;
         }
